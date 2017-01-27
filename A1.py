@@ -11,7 +11,7 @@ import os
 from scipy.ndimage import filters
 import urllib
 
-random.seed(1000)
+#random.seed(20)
 
 def get_imgs(read_folder, actors, num_photos):
     imgs = np.empty([0, 1024])
@@ -41,11 +41,11 @@ def get_imgs(read_folder, actors, num_photos):
 
 
 def f(x, y, theta):
-    #x = vstack( (ones((1, x.shape[1])), x))
+    x = vstack( (ones((1, x.shape[1])), x))
     return sum( (y - dot(theta.T,x)) ** 2)
 
 def df(x, y, theta):
-    #x = vstack( (ones((1, x.shape[1])), x))
+    x = vstack( (ones((1, x.shape[1])), x))
     return -2*sum((y-dot(theta.T, x))*x, 1)
 
 def grad_descent(f, df, x, y, init_t, alpha):
@@ -56,7 +56,7 @@ def grad_descent(f, df, x, y, init_t, alpha):
     iter  = 0 
     while norm(t - prev_t) >  EPS and iter < max_iter:
         prev_t = t.copy()
-        t -= (alpha*df(x, y, t).reshape(1024, 1))
+        t -= (alpha*df(x, y, t).reshape(1025, 1))
         if iter % 500 == 0:
             print "Iter", iter
             print "df = ", alpha*df(x, y, t)
@@ -81,7 +81,7 @@ def get_sets(x, y, actors, filename_to_img, training_size=100, validation_size=1
         img_i = range(actor_i*total_size, actor_i*total_size + total_size)
         random.shuffle(img_i)
         randomized_set = [x[j] for j in img_i]
-        
+         
         training_set.extend(randomized_set[:training_size])
         validation_set.extend(randomized_set[training_size: training_size + validation_size])
         test_set.extend(randomized_set[training_size + validation_size:])
@@ -92,56 +92,9 @@ def get_sets(x, y, actors, filename_to_img, training_size=100, validation_size=1
     
     return np.array(training_set), np.array(training_y), np.array(validation_set), np.array(validation_y), np.array(test_set), np.array(test_y)
 
-def linear_classifier():
-    TRAINING_SIZE = 2
-    VAL_SIZE = 10
-    TEST_SIZE = 10
-    TOTAL_SIZE = TRAINING_SIZE + VAL_SIZE + TEST_SIZE
-    #training set
-    actors = ["carell", "hader"]
-    x, y, filename_to_img = get_imgs("filtered_male/", actors, TOTAL_SIZE)
-    x /=255.
-    
-    training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
-    
-    #x = vstack(ones([1, 200]))
-    theta = np.random.rand(1024, 1)*(1E-12)
-    
-    # linear classifier y has one column
-    training_y = reshape(training_y.T[1], (1, TRAINING_SIZE*len(actors)))
-    validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
-    test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
-    
-    t = grad_descent(f, df, training_set.T, training_y, theta, 1E-7)
-    
-    # imshow(reshape(t[1:], [32, 32]))
-    # show()
-    # imsave('theta.png', reshape(t[1:], [32,32]))
-    
-    imshow(reshape(t, [32, 32]))
-    show()
-    imsave('theta.png', reshape(t, [32,32]))
-    # t = imread("theta.png", True)
-    # t = reshape(t, [1024, 1])
-    
-    print("theta: ", t)
-    return t
-
-
-def part3():
-    t = linear_classifier()
-    
-    train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
-    val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
-    test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
-
-    print("TRAIN PERFORMANCE: %f", train_p*100)
-    print("VALIDATION PERFORMANCE: %f", val_p*100)
-    print("TEST PERFORMANCE: %f", test_p*100)
-    
 def performance(x, y, theta, size):
     correct_y = y[0]
-    # x = vstack( (ones((1, x.shape[1])), x))
+    x = vstack( (ones((1, x.shape[1])), x))
     h = dot(theta.T, x)
     predicted_y = []
     
@@ -156,9 +109,68 @@ def performance(x, y, theta, size):
         if p == c:
             num_correct +=1
         
-    return num_correct/float(size)
+    return num_correct/float(size) 
     
-linear_classifier()
+    
+def linear_classifier(training_set, training_y):
+    x = vstack(ones([1, 200]))
+    theta = np.random.rand(1025, 1)*(1E-9)
+    t = grad_descent(f, df, training_set.T, training_y, theta, 5E-7)
+    
+    return t
+
+
+def part3():
+    TRAINING_SIZE = 100
+    VAL_SIZE = 10
+    TEST_SIZE = 10
+    TOTAL_SIZE = TRAINING_SIZE + VAL_SIZE + TEST_SIZE
+    
+    # get all images
+    actors = ["carell", "hader"]
+    x, y, filename_to_img = get_imgs("filtered_male/", actors, TOTAL_SIZE)
+    x /=255.
+    
+    training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
+    
+    # linear classifier y has one column
+    training_y = reshape(training_y.T[1], (1, TRAINING_SIZE*len(actors)))
+    validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
+    test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
+    
+    t = linear_classifier(training_set, training_y)
+    print("theta: ", t)
+    imshow(reshape(t[1:], [32, 32]))
+    show()
+    imsave('theta.png', reshape(t[1:], [32,32]))
+    
+    # imshow(reshape(t, [32, 32]))
+    # show()
+    # imsave('theta.png', reshape(t, [32,32]))
+    
+    
+    train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
+    val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
+    test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
+
+    print("TRAIN PERFORMANCE: %f", train_p*100)
+    print("VALIDATION PERFORMANCE: %f", val_p*100)
+    print("TEST PERFORMANCE: %f", test_p*100)
+    
+
+def part5():
+    TRAINING_SIZE = 100
+    VAL_SIZE = 10
+    TEST_SIZE = 10
+    TOTAL_SIZE = TRAINING_SIZE + VAL_SIZE + TEST_SIZE
+    
+    # get all images
+    actors = ['Fran Drescher', 'America Ferrera', 'Kristin Chenoweth', 'Alec Baldwin', 'Bill Hader', 'Steve Carell']
+    x, y, filename_to_img = get_imgs("filtered_male/", actors, TOTAL_SIZE)
+    x /=255.
+    
+    
+part3()
     
     
     

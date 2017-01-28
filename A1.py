@@ -162,15 +162,121 @@ def part5():
     TRAINING_SIZE = 100
     VAL_SIZE = 10
     TEST_SIZE = 10
+    OTHER_SIZE = 100
     TOTAL_SIZE = TRAINING_SIZE + VAL_SIZE + TEST_SIZE
     
     # get all images
     actors = ['Fran Drescher', 'America Ferrera', 'Kristin Chenoweth', 'Alec Baldwin', 'Bill Hader', 'Steve Carell']
-    x, y, filename_to_img = get_imgs("filtered_male/", actors, TOTAL_SIZE)
+    act_test = ['Lorraine Bracco', 'Peri Gilpin', 'Angie Harmon', 'Gerard Butler', 'Daniel Radcliffe', 'Michael Vartan']
+    actors = [a.split()[1].lower() for a in actors]
+    act_test = [a.split()[1].lower() for a in act_test]
+    
+    # get images for actors
+    x, y, filename_to_img = get_imgs("filtered/", actors, TOTAL_SIZE) 
+    x /=255.
+    y = np.array([[0, 1] if np.nonzero(i)[0][0]<3 else [1, 0] for i in y])
+    
+    # get images for act_test
+    other_x, other_y, filename_to_img = get_imgs("filtered/", act_test, OTHER_SIZE) 
+    other_x /=255.
+    other_y = np.array([[0, 1] if np.nonzero(i)[0][0]<3 else [1, 0] for i in other_y])
+    other_y = reshape(other_y.T[1], (1, OTHER_SIZE*len(act_test)))
+    
+    training_perf = []
+    val_perf = []
+    test_perf = []
+    other_perf = []
+    for TRAINING_SIZE in [1, 5, 10, 50, 100]:
+        training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
+        
+        # linear classifier y has one column
+        training_y = reshape(training_y.T[1], (1, TRAINING_SIZE*len(actors)))
+        validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
+        test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
+        
+        
+        t = linear_classifier(training_set, training_y)
+        print("theta: ", t)
+        imshow(reshape(t[1:], [32, 32]))
+        show()
+        imsave('part5_theta_'+str(TRAINING_SIZE)+'.png', reshape(t[1:], [32,32]))
+        
+        train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
+        val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
+        test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
+        other_p = performance(other_x.T, other_y, t, OTHER_SIZE*len(act_test))
+        
+        training_perf.append(train_p)
+        val_perf.append(val_p)
+        test_perf.append(test_p)
+        other_perf.append(other_p)
+    
+    performances = vstack(train_perf, val_perf)
+    performance = vstack((performance, test_perf))
+    performance = vstack((performance, other_perf))
+    
+    print("TRAIN PERFORMANCE: ", training_perf)
+    print("VALIDATION PERFORMANCE: ", val_perf)
+    print("TEST PERFORMANCE: ", test_perf)
+    print("NON TRAINING ACTOR PERFORMANCE: ", other_perf)
+    
+    return performance
+    
+    
+def part5_plot():
+    training_data_sizes = [1, 5, 10, 50, 100]
+    # performance = part5()
+    performance = array([[ 1.        ,  1.        ,  1.        ,  0.95333333,  0.96166667], [ 0.98333333,  1.        ,  0.98333333,  0.8       ,  0.78333333], [ 1.        ,  0.98333333,  1.        ,  0.85      ,  0.73333333], [ 0.49666667,  0.5       ,  0.5       ,  0.53666667,  0.72166667]])
+    plt.plot(training_data_sizes, performance[0], color='k', linewidth=2, marker='o', label="Training Set Performance")
+    plt.plot(training_data_sizes, performance[1], color='g', linewidth=2, marker='o', label="Validation Set Performance")
+    plt.plot(training_data_sizes, performance[2], color='b', linewidth=2, marker='o', label="Test Set Performance")
+    plt.plot(training_data_sizes, performance[3], color='r', linewidth=2, marker='o', label="Non-Training Set Performance")
+    
+    plt.title('Training Size vs. Performance for Various Datasets')
+    plt.ylim([0,1.2])
+    plt.xlabel('Training Size')
+    plt.ylabel('Performance')
+    plt.legend()
+    plt.show()
+
+def part7():
+    TRAINING_SIZE = 100
+    VAL_SIZE = 10
+    TEST_SIZE = 10
+    TOTAL_SIZE = TRAINING_SIZE + VAL_SIZE + TEST_SIZE
+    
+    # get all images
+    actors = ['Fran Drescher', 'America Ferrera', 'Kristin Chenoweth', 'Alec Baldwin', 'Bill Hader', 'Steve Carell']
+    x, y, filename_to_img = get_imgs("filtered/", actors, TOTAL_SIZE)
     x /=255.
     
+    training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
     
-part3()
+    # linear classifier y has one column
+    training_y = reshape(training_y.T[1], (1, TRAINING_SIZE*len(actors)))
+    validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
+    test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
+    
+    t = linear_classifier(training_set, training_y)
+    print("theta: ", t)
+    imshow(reshape(t[1:], [32, 32]))
+    show()
+    imsave('theta.png', reshape(t[1:], [32,32]))
+    
+    # imshow(reshape(t, [32, 32]))
+    # show()
+    # imsave('theta.png', reshape(t, [32,32]))
+    
+    
+    train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
+    val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
+    test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
+
+    print("TRAIN PERFORMANCE: %f", train_p*100)
+    print("VALIDATION PERFORMANCE: %f", val_p*100)
+    print("TEST PERFORMANCE: %f", test_p*100)
+    
+part5_plot()
     
     
     

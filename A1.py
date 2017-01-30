@@ -48,15 +48,32 @@ def df(x, y, theta):
     x = vstack( (ones((1, x.shape[1])), x))
     return -2*sum((y-dot(theta.T, x))*x, 1)
 
-def grad_descent(f, df, x, y, init_t, alpha):
+def check_grad_multiclass(x, y, theta):
+    theta = array([-3, 2, 1])
+    
+    h_i3 = 0.000001
+    h = np.zeros(1, 1025)
+    h[3] = h_i3
+    print (f(x, y, theta+h) - f(x, y, theta-h))/(2*h_i3)
+    print df_multiclass(x, y, theta)
+
+def f_multiclass(x, y, theta):
+    x = vstack( (ones((1, x.shape[1])), x))
+    return sum( (y - dot(theta.T,x)) ** 2)
+
+def df_multiclass(x, y, theta):
+    x = vstack( (ones((1, x.shape[1])), x))
+    return 2*dot(x, (dot(theta.T,x)-y.T).T)
+
+def grad_descent(f, df, x, y, init_t, alpha, dim_row, dim_col):
     EPS = 1e-5   #EPS = 10**(-5)
     prev_t = init_t-10*EPS
     t = init_t.copy()
-    max_iter = 30000
+    max_iter = 3000 #30000
     iter  = 0 
     while norm(t - prev_t) >  EPS and iter < max_iter:
         prev_t = t.copy()
-        t -= (alpha*df(x, y, t).reshape(1025, 1))
+        t -= alpha*df_multiclass(x, y, t)#.reshape(dim_row+1, dim_col)
         if iter % 500 == 0:
             print "Iter", iter
             print "df = ", alpha*df(x, y, t)
@@ -111,13 +128,27 @@ def performance(x, y, theta, size):
         
     return num_correct/float(size) 
     
+def performance_multiclass(x, y, theta, size):
+    correct_y = y
+    x = vstack( (ones((1, x.shape[1])), x))
+    h = dot(theta.T, x).T
+    predicted_y = []
     
-def linear_classifier(training_set, training_y):
-    x = vstack(ones([1, 200]))
-    theta = np.random.rand(1025, 1)*(1E-9)
-    t = grad_descent(f, df, training_set.T, training_y, theta, 5E-7)
+    num_correct = 0
+    for i in range(len(correct_y)):
+        if h[i].argmax() == correct_y[i].argmax():
+            num_correct+=1
+        
+    return num_correct/float(size)
+    
+    
+def linear_classifier(training_set, training_y, dim_row, dim_col, alpha=5E-7):
+    #x = hstack((ones([dim_col, 1]), training_set))
+    theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
+    t = grad_descent(f, df_multiclass, training_set.T, training_y, theta, alpha, dim_row, dim_col)
     
     return t
+
 
 
 def part3():
@@ -138,7 +169,7 @@ def part3():
     validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
     test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
     
-    t = linear_classifier(training_set, training_y)
+    t = linear_classifier(training_set, training_y, 1024, 1)
     print("theta: ", t)
     imshow(reshape(t[1:], [32, 32]))
     show()
@@ -195,7 +226,7 @@ def part5():
         test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
         
         
-        t = linear_classifier(training_set, training_y)
+        t = linear_classifier(training_set, training_y, 1024, 1)
         print("theta: ", t)
         imshow(reshape(t[1:], [32, 32]))
         show()
@@ -247,36 +278,36 @@ def part7():
     
     # get all images
     actors = ['Fran Drescher', 'America Ferrera', 'Kristin Chenoweth', 'Alec Baldwin', 'Bill Hader', 'Steve Carell']
+    actors = [a.split()[1].lower() for a in actors]
     x, y, filename_to_img = get_imgs("filtered/", actors, TOTAL_SIZE)
     x /=255.
     
     training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
     
-    # linear classifier y has one column
-    training_y = reshape(training_y.T[1], (1, TRAINING_SIZE*len(actors)))
-    validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
-    test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
-    
-    t = linear_classifier(training_set, training_y)
+    t = linear_classifier(training_set, training_y, 1024, len(actors), 1.5E-6)
     print("theta: ", t)
-    imshow(reshape(t[1:], [32, 32]))
-    show()
-    imsave('theta.png', reshape(t[1:], [32,32]))
+    # imshow(reshape(t[1:], [32, 32]))
+    # show()
+    # imsave('theta.png', reshape(t[1:], [32,32]))
     
     # imshow(reshape(t, [32, 32]))
     # show()
     # imsave('theta.png', reshape(t, [32,32]))
     
+    for i in range(6):
+        imshow(t.T[i][1:].reshape(32,32), cmap=cm.coolwarm)
+        imsave('part7_theta_'+str(i), t.T[i][1:].reshape(32,32))
+        show()
     
-    train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
-    val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
-    test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
+    train_p = performance_multiclass(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
+    val_p = performance_multiclass(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
+    test_p = performance_multiclass(test_set.T, test_y, t, TEST_SIZE*len(actors))
 
     print("TRAIN PERFORMANCE: %f", train_p*100)
     print("VALIDATION PERFORMANCE: %f", val_p*100)
     print("TEST PERFORMANCE: %f", test_p*100)
     
-part5_plot()
+part7()
     
     
     

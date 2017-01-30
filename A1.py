@@ -49,17 +49,17 @@ def df(x, y, theta):
     return -2*sum((y-dot(theta.T, x))*x, 1)
 
 def check_grad_multiclass(x, y, theta):
-    theta = array([-3, 2, 1])
-    
-    h_i3 = 0.000001
-    h = np.zeros(1, 1025)
-    h[3] = h_i3
-    print (f(x, y, theta+h) - f(x, y, theta-h))/(2*h_i3)
-    print df_multiclass(x, y, theta)
+    h_r2_c3 = 0.000001
+    h = np.zeros([1025, 6])
+    h[2,3] = h_r2_c3
+    x = x.T.reshape(1024, 1)
+    y = y.reshape(1,6)
+    print "Finite Difference= ", (f_multiclass(x, y, theta+h) - f_multiclass(x, y, theta-h))/(2*h_r2_c3)
+    print "df[2,3]= ", df_multiclass(x, y, theta)[2,3]
 
 def f_multiclass(x, y, theta):
     x = vstack( (ones((1, x.shape[1])), x))
-    return sum( (y - dot(theta.T,x)) ** 2)
+    return sum(np.square((y - dot(theta.T,x).T)))
 
 def df_multiclass(x, y, theta):
     x = vstack( (ones((1, x.shape[1])), x))
@@ -144,7 +144,8 @@ def performance_multiclass(x, y, theta, size):
     
 def linear_classifier(training_set, training_y, dim_row, dim_col, alpha=5E-7):
     #x = hstack((ones([dim_col, 1]), training_set))
-    theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
+    #theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
+    theta = np.zeros([dim_row+1, dim_col])
     t = grad_descent(f, df_multiclass, training_set.T, training_y, theta, alpha, dim_row, dim_col)
     
     return t
@@ -284,8 +285,11 @@ def part7():
     
     training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
     
+    
+    
     t = linear_classifier(training_set, training_y, 1024, len(actors), 1.5E-6)
-    print("theta: ", t)
+ 
+    
     # imshow(reshape(t[1:], [32, 32]))
     # show()
     # imsave('theta.png', reshape(t[1:], [32,32]))
@@ -303,15 +307,23 @@ def part7():
     val_p = performance_multiclass(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
     test_p = performance_multiclass(test_set.T, test_y, t, TEST_SIZE*len(actors))
 
+    check_grad_multiclass(training_set[1], training_y[1], t)
     print("TRAIN PERFORMANCE: %f", train_p*100)
     print("VALIDATION PERFORMANCE: %f", val_p*100)
     print("TEST PERFORMANCE: %f", test_p*100)
     
+
+
 part7()
     
-    
-    
-    
+# (df_multiclass)>>> x.shape
+# (1025, 600)
+# 
+# (df_multiclass)>>> y.shape
+# (600, 6)
+# 
+# (df_multiclass)>>> (dot(theta.T,x)-y.T).T.shape
+# (600, 6)
     
     
     

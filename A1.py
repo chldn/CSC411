@@ -11,7 +11,7 @@ import os
 from scipy.ndimage import filters
 import urllib
 
-#random.seed(20)
+random.seed(20) #20 - 71%
 
 def get_imgs(read_folder, actors, num_photos):
     imgs = np.empty([0, 1024])
@@ -48,14 +48,16 @@ def df(x, y, theta):
     x = vstack( (ones((1, x.shape[1])), x))
     return -2*sum((y-dot(theta.T, x))*x, 1)
 
-def check_grad_multiclass(x, y, theta):
-    h_r2_c3 = 0.000001
-    h = np.zeros([1025, 6])
-    h[2,3] = h_r2_c3
-    x = x.T.reshape(1024, 1)
-    y = y.reshape(1,6)
-    print "Finite Difference= ", (f_multiclass(x, y, theta+h) - f_multiclass(x, y, theta-h))/(2*h_r2_c3)
-    print "df[2,3]= ", df_multiclass(x, y, theta)[2,3]
+def check_grad_multiclass(x, y, theta, coords):
+    for coord in coords:
+        h_r_c = 0.000001
+        h = np.zeros([1025, 6])
+        h[coord[0],coord[1]] = h_r_c
+        x = x.T.reshape(1024, 1)
+        y = y.reshape(1,6)
+        print "Validating gradient function at: ", coords
+        print "\t Finite Difference=", (f_multiclass(x, y, theta+h) - f_multiclass(x, y, theta-h))/(2*h_r_c)
+        print "\t df[{},{}]= {}".format(coord[0], coord[1], df_multiclass(x, y, theta)[coord[0], coord[1]])
 
 def f_multiclass(x, y, theta):
     x = vstack( (ones((1, x.shape[1])), x))
@@ -65,7 +67,7 @@ def df_multiclass(x, y, theta):
     x = vstack( (ones((1, x.shape[1])), x))
     return 2*dot(x, (dot(theta.T,x)-y.T).T)
 
-def grad_descent(f, df, x, y, init_t, alpha, dim_row, dim_col):
+def grad_descent(f, df, x, y, init_t, alpha, dim_row, dim_col, multiclass):
     EPS = 1e-5   #EPS = 10**(-5)
     prev_t = init_t-10*EPS
     t = init_t.copy()
@@ -73,14 +75,20 @@ def grad_descent(f, df, x, y, init_t, alpha, dim_row, dim_col):
     iter  = 0 
     while norm(t - prev_t) >  EPS and iter < max_iter:
         prev_t = t.copy()
-        t -= alpha*df_multiclass(x, y, t)#.reshape(dim_row+1, dim_col)
+        if multiclass:
+            t -= alpha*df_multiclass(x, y, t)#.reshape(dim_row+1, dim_col)
+        else:
+            t -= alpha*df(x, y, t).reshape(dim_row+1, dim_col)
         if iter % 500 == 0:
             print "Iter", iter
             print "df = ", alpha*df(x, y, t)
             print "t = ", t 
             print "Gradient: ", df(x, y, t), "\n"
         iter += 1
+        
     return t
+
+
 
 def get_sets(x, y, actors, filename_to_img, training_size=100, validation_size=10, test_size=10):
     total_size = training_size + validation_size + test_size
@@ -93,7 +101,6 @@ def get_sets(x, y, actors, filename_to_img, training_size=100, validation_size=1
     test_y = []
     
     for actor_i in range(len(actors)):
-        
         # get random indices
         img_i = range(actor_i*total_size, actor_i*total_size + total_size)
         random.shuffle(img_i)
@@ -142,15 +149,19 @@ def performance_multiclass(x, y, theta, size):
     return num_correct/float(size)
     
     
-def linear_classifier(training_set, training_y, dim_row, dim_col, alpha=5E-7):
+def linear_classifier(training_set, training_y, dim_row, dim_col, alpha):
     #x = hstack((ones([dim_col, 1]), training_set))
-    #theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
-    theta = np.zeros([dim_row+1, dim_col])
-    t = grad_descent(f, df_multiclass, training_set.T, training_y, theta, alpha, dim_row, dim_col)
+    theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
+    t = grad_descent(f, df, training_set.T, training_y, theta, alpha, dim_row, dim_col, multiclass=0)
     
     return t
 
-
+def linear_classifier_multiclass(training_set, training_y, dim_row, dim_col, alpha):
+    #x = hstack((ones([dim_col, 1]), training_set))
+    theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
+    t = grad_descent(f, df_multiclass, training_set.T, training_y, theta, alpha, dim_row, dim_col, multiclass=1)
+    
+    return t
 
 def part3():
     TRAINING_SIZE = 100
@@ -170,21 +181,18 @@ def part3():
     validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
     test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
     
-    t = linear_classifier(training_set, training_y, 1024, 1)
+    t = linear_classifier(training_set, training_y, 1024, 1, 5E-7)
     print("theta: ", t)
-    imshow(reshape(t[1:], [32, 32]))
+    imshow(reshape(t[1:], [32, 32]), cmap=cm.coolwarm)
     show()
-    imsave('theta.png', reshape(t[1:], [32,32]))
-    
-    # imshow(reshape(t, [32, 32]))
-    # show()
-    # imsave('theta.png', reshape(t, [32,32]))
-    
+    imsave('part3_theta_training'+str(TRAINING_SIZE)+'.jpg', reshape(t[1:], [32,32]), cmap=cm.coolwarm)
     
     train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
     val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
     test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
-
+    
+    print "f_training= ", f(training_set.T, training_y, t)
+    print "f_validation= ", f(validation_set.T, validation_y, t)
     print("TRAIN PERFORMANCE: %f", train_p*100)
     print("VALIDATION PERFORMANCE: %f", val_p*100)
     print("TEST PERFORMANCE: %f", test_p*100)
@@ -200,7 +208,7 @@ def part5():
     # get all images
     actors = ['Fran Drescher', 'America Ferrera', 'Kristin Chenoweth', 'Alec Baldwin', 'Bill Hader', 'Steve Carell']
     act_test = ['Lorraine Bracco', 'Peri Gilpin', 'Angie Harmon', 'Gerard Butler', 'Daniel Radcliffe', 'Michael Vartan']
-    actors = [a.split()[1].lower() for a in actors]
+    actors = [a.split()[1].lower() for a in   actors]
     act_test = [a.split()[1].lower() for a in act_test]
     
     # get images for actors
@@ -227,11 +235,11 @@ def part5():
         test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
         
         
-        t = linear_classifier(training_set, training_y, 1024, 1)
-        print("theta: ", t)
-        imshow(reshape(t[1:], [32, 32]))
-        show()
-        imsave('part5_theta_'+str(TRAINING_SIZE)+'.png', reshape(t[1:], [32,32]))
+        t = linear_classifier(training_set, training_y, 1024, 1, 5E-7)
+        # print("theta: ", t)
+        # imshow(reshape(t[1:], [32, 32]))
+        # show()
+        # imsave('part5_theta_'+str(TRAINING_SIZE)+'.png', reshape(t[1:], [32,32]))
         
         train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
         val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
@@ -240,35 +248,37 @@ def part5():
         
         training_perf.append(train_p)
         val_perf.append(val_p)
-        test_perf.append(test_p)
+        #test_perf.append(test_p)
         other_perf.append(other_p)
     
-    performances = vstack(train_perf, val_perf)
-    performance = vstack((performance, test_perf))
-    performance = vstack((performance, other_perf))
+    performances = vstack((np.array(training_perf), np.array(val_perf)))
+    #performances = vstack((performances, np.array(test_perf)))
+    performances = vstack((performances, np.array(other_perf)))
     
     print("TRAIN PERFORMANCE: ", training_perf)
     print("VALIDATION PERFORMANCE: ", val_perf)
-    print("TEST PERFORMANCE: ", test_perf)
+    #print("TEST PERFORMANCE: ", test_perf)
     print("NON TRAINING ACTOR PERFORMANCE: ", other_perf)
     
-    return performance
+    part5_plot(performances)
+    return performances
     
     
-def part5_plot():
+def part5_plot(performance):
     training_data_sizes = [1, 5, 10, 50, 100]
     # performance = part5()
-    performance = array([[ 1.        ,  1.        ,  1.        ,  0.95333333,  0.96166667], [ 0.98333333,  1.        ,  0.98333333,  0.8       ,  0.78333333], [ 1.        ,  0.98333333,  1.        ,  0.85      ,  0.73333333], [ 0.49666667,  0.5       ,  0.5       ,  0.53666667,  0.72166667]])
+    #performance = array([[ 1.        ,  1.        ,  1.        ,  0.95333333,  0.96166667], [ 0.98333333,  1.        ,  0.98333333,  0.8       ,  0.78333333], [ 1.        ,  0.98333333,  1.        ,  0.85      ,  0.73333333], [ 0.49666667,  0.5       ,  0.5       ,  0.53666667,  0.72166667]])
     plt.plot(training_data_sizes, performance[0], color='k', linewidth=2, marker='o', label="Training Set Performance")
     plt.plot(training_data_sizes, performance[1], color='g', linewidth=2, marker='o', label="Validation Set Performance")
-    plt.plot(training_data_sizes, performance[2], color='b', linewidth=2, marker='o', label="Test Set Performance")
-    plt.plot(training_data_sizes, performance[3], color='r', linewidth=2, marker='o', label="Non-Training Set Performance")
+   # plt.plot(training_data_sizes, performance[2], color='b', linewidth=2, marker='o', label="Test Set Performance")
+    plt.plot(training_data_sizes, performance[2], color='r', linewidth=2, marker='o', label="Non-Training Set Performance")
     
     plt.title('Training Size vs. Performance for Various Datasets')
     plt.ylim([0,1.2])
     plt.xlabel('Training Size')
     plt.ylabel('Performance')
     plt.legend()
+    plt.savefig("part5_plot.jpg")
     plt.show()
 
 def part7():
@@ -285,9 +295,7 @@ def part7():
     
     training_set, training_y, validation_set, validation_y, test_set, test_y = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
     
-    
-    
-    t = linear_classifier(training_set, training_y, 1024, len(actors), 1.5E-6)
+    t = linear_classifier_multiclass(training_set, training_y, 1024, len(actors), 1.5E-6)
  
     
     # imshow(reshape(t[1:], [32, 32]))
@@ -300,21 +308,21 @@ def part7():
     
     for i in range(6):
         imshow(t.T[i][1:].reshape(32,32), cmap=cm.coolwarm)
-        imsave('part7_theta_'+str(i), t.T[i][1:].reshape(32,32))
+        imsave('part7_theta_'+str(i), t.T[i][1:].reshape(32,32), cmap=cm.coolwarm)
         show()
     
     train_p = performance_multiclass(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
     val_p = performance_multiclass(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
     test_p = performance_multiclass(test_set.T, test_y, t, TEST_SIZE*len(actors))
 
-    check_grad_multiclass(training_set[1], training_y[1], t)
+    check_grad_multiclass(training_set[1], training_y[1], t, [(2,3), (100,5), (500,5)])
     print("TRAIN PERFORMANCE: %f", train_p*100)
     print("VALIDATION PERFORMANCE: %f", val_p*100)
     print("TEST PERFORMANCE: %f", test_p*100)
     
-
-
 part7()
+
+
     
 # (df_multiclass)>>> x.shape
 # (1025, 600)

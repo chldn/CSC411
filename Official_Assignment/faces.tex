@@ -1,0 +1,494 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programming/Coding Assignment
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Original author: 
+% Ted Pavlic (http://www.tedpavlic.com)
+%
+% Note:
+% The \lipsum[#] commands throughout this template generate dummy text
+% to fill the template out. These commands should all be removed when 
+% writing assignment content.
+%
+% This template uses a Perl script as an example snippet of code, most other
+% languages are also usable. Configure them in the "CODE INCLUSION 
+% CONFIGURATION" section.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage[usenames,dvipsnames]{color} % Required for custom colors
+\usepackage{graphicx} % Required to insert images
+\usepackage{subcaption}
+\usepackage{listings} % Required for insertion of code
+\usepackage{courier} % Required for the courier font
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\usepackage[export]{adjustbox}
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName} % Top left header
+\chead{\hmwkClass\ (\hmwkClassTime): \hmwkTitle} % Top center head
+%\rhead{\firstxmark} % Top right header
+\lfoot{\lastxmark} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\documentclass{article}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+%----------------------------------------------------------------------------------------
+%	CODE INCLUSION CONFIGURATION
+%----------------------------------------------------------------------------------------
+
+\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0} % This is the color used for comments
+\lstloadlanguages{Perl} % Load Perl syntax for listings, for a list of other languages supported see: ftp://ftp.tex.ac.uk/tex-archive/macros/latex/contrib/listings/listings.pdf
+\lstset{language=Perl, % Use Perl in this example
+        frame=single, % Single frame around code
+        basicstyle=\small\ttfamily, % Use small true type font
+        keywordstyle=[1]\color{Blue}\bf, % Perl functions bold and blue
+        keywordstyle=[2]\color{Purple}, % Perl function arguments purple
+        keywordstyle=[3]\color{Blue}\underbar, % Custom functions underlined and blue
+        identifierstyle=, % Nothing special about identifiers                                         
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small, % Comments small dark green courier font
+        stringstyle=\color{Purple}, % Strings are purple
+        showstringspaces=false, % Don't put marks in string spaces
+        tabsize=5, % 5 spaces per tab
+        %
+        % Put standard Perl functions not included in the default language here
+        morekeywords={rand},
+        %
+        % Put Perl function parameters here
+        morekeywords=[2]{on, off, interp},
+        %
+        % Put user defined functions here
+        morekeywords=[3]{test},
+       	%
+        morecomment=[l][\color{Blue}]{...}, % Line continuation (...) like blue comment
+        numbers=left, % Line numbers on left
+        firstnumber=1, % Line numbers start with line 1
+        numberstyle=\tiny\color{Blue}, % Line numbers are blue and small
+        stepnumber=5 % Line numbers go in steps of 5
+}
+
+% Creates a new command to include a perl script, the first parameter is the filename of the script (without .pl), the second parameter is the caption
+\newcommand{\perlscript}[2]{
+\begin{itemize}
+\item[]\lstinputlisting[caption=#2,label=#1]{#1.pl}
+\end{itemize}
+}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+%\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+%\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+%\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+%\nobreak\extramarks{#1}{}\nobreak
+}
+
+\setcounter{secnumdepth}{0} % Removes default section numbers
+\newcounter{homeworkProblemCounter} % Creates a counter to keep track of the number of problems
+\setcounter{homeworkProblemCounter}
+
+\newcommand{\homeworkProblemName}{}
+\newenvironment{homeworkProblem}[1][Part \arabic{homeworkProblemCounter}]{ % Makes a new environment called homeworkProblem which takes 1 argument (custom name) but the default is "Problem #"
+\stepcounter{homeworkProblemCounter} % Increase counter for number of problems
+\renewcommand{\homeworkProblemName}{#1} % Assign \homeworkProblemName the name of the problem
+\section{\homeworkProblemName} % Make a section in the document with the custom problem count
+\enterProblemHeader{\homeworkProblemName} % Header and footer within the environment
+}{
+\exitProblemHeader{\homeworkProblemName} % Header and footer after the environment
+}
+
+\newcommand{\problemAnswer}[1]{ % Defines the problem answer command with the content as the only argument
+\noindent\framebox[\columnwidth][c]{\begin{minipage}{0.98\columnwidth}#1\end{minipage}} % Makes the box around the problem answer and puts the content inside
+}
+
+\newcommand{\homeworkSectionName}{}
+\newenvironment{homeworkSection}[1]{ % New environment for sections within homework problems, takes 1 argument - the name of the section
+\renewcommand{\homeworkSectionName}{#1} % Assign \homeworkSectionName to the name of the section from the environment argument
+\subsection{\homeworkSectionName} % Make a subsection with the custom name of the subsection
+\enterProblemHeader{\homeworkProblemName\ [\homeworkSectionName]} % Header and footer within the environment
+}{
+\enterProblemHeader{\homeworkProblemName} % Header and footer after the environment
+}
+
+%----------------------------------------------------------------------------------------
+%	NAME AND CLASS SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\hmwkTitle}{Assignment 1} % Assignment title
+\newcommand{\hmwkDueDate}{Wednesday,\ February\ 1,\ 2017} % Due date
+\newcommand{\hmwkClass}{CSC411} % Course/class
+\newcommand{\hmwkClassTime}{L0101} % Class/lecture time
+\newcommand{\hmwkAuthorName}{Chloe Duan} % Your name
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title{
+\vspace{2in}
+\textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+\normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\
+\vspace{0.1in}
+\vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+%\date{} % Insert date here if you want it to appear below your name
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+\clearpage
+%----------------------------------------------------------------------------------------
+%	PART 1
+%----------------------------------------------------------------------------------------
+
+
+% To have just one problem per page, simply put a \clearpage after each problem
+
+\begin{homeworkProblem}
+\textbf{Describe the dataset of faces. In particular, provide at least three examples of the images in the dataset, as well as at least three examples of cropped out faces. Comment on the quality of the annotation of the dataset: are the bounding boxes accurate? Can the cropped-out faces be aligned with each other?
+}\\
+\\
+\begin{table}[]
+\centering
+\caption{5 Examples of Dataset Images with their cropped counterparts}
+\label{my-label}
+\begin{tabular}{lllll}
+ & \underline{Figure} & \underline{Unrefined} & \underline{Refined} &  &  &\\
+ &Image 1 & \includegraphics[scale=0.05]{butler8_uncropped.jpg}  & \includegraphics[scale=1]{butler8.jpg} &  &  \\
+ &Image 2 &\includegraphics[scale=0.2]{harmon20_uncropped.jpg}  & 
+ \includegraphics[scale=1]{harmon20.jpg}&  &  \\
+ &Image 3 &\includegraphics[scale=0.1]{vartan142_uncropped.jpg}  & 
+ \includegraphics[scale=1]{vartan142.jpg}&  & \\
+\end{tabular}
+\end{table}
+
+This dataset consists of images generated from photos extracted from online using a subset of the Facescrub database - ($get$\_$data.py$). The raw images were later grayscaled, scaled to 32$\times$32 as well as cropped according to the bounding boxes - ($resize$\_$and$\_$grayscale.py$). The cropped photos consist of just the face of the actor or actress. \\
+\indent The majority of the bounding boxes were accurate such as Images 1-3. However, a few images showed misbounding of the face, leaving the image cropped only at the eyes and nose. These images  might effect the program performance slightly because they would not provide an effective comparison for the test data and might skew results. This is an example of something that can cause difficulty or error in the prediction performance. Looking at Images 1-3, the cropped-out faces can be aligned for comparison. Although this is a very small subset of the dataset and the ability to align images may vary from photo to photo, the majority of the cropped faces can be aligned to some degree.  
+
+
+\end{homeworkProblem}
+\clearpage
+%----------------------------------------------------------------------------------------
+%	PART 2
+%----------------------------------------------------------------------------------------
+
+\begin{homeworkProblem}
+
+\underline{Separating Datasets}\\
+\\
+\indent  All images for an actor / actress are put into a matrix. The training, validation and test sets were separated randomly using the Random module by shuffling the images for each actor and and assigning 100, 10 and 10 images to the training, validation and test sets respectfully from the original set x. The y values are done in parallel with this assignment to keep track of the labels.\\
+\indent The sets are then returned to the calling function with their respective labels split into the set sizes specified.
+\\
+\textit{This is implemented in the $get\_sets()$ function.\\
+Note. All images are in folder called "filtered" in the same directory as faces.py.}
+
+\end{homeworkProblem}
+
+%----------------------------------------------------------------------------------------
+%	PART 3
+%----------------------------------------------------------------------------------------
+
+\begin{homeworkProblem}
+\underline{Linear Classifier: distinguish between Steve Carell and Bill Hader}\\
+\\
+\textbf{Minimized Cost function:} Least Squares
+\\
+\textbf{Training Set Cost Function Value:} 27.506001423
+\\
+\textbf{Validation Set Cost Function Value:} 3.77946337408
+\\
+\textbf{Training Set Classifier Performance:} 0.85
+\\
+\textbf{Validation Set Classifier Performance:} 0.80
+\\
+\textbf{Alpha:} 5E-7
+\\
+\textbf{Code of the Linear Binary Classifier:\\}
+\begin{lstlisting}
+def grad_descent(f, df, x, y, init_t, alpha, dim_row, dim_col, multiclass=0):
+    EPS = 1e-5   #EPS = 10**(-5)
+    prev_t = init_t-10*EPS
+    t = init_t.copy()
+    max_iter = 3000 
+    iter  = 0 
+    while norm(t - prev_t) >  EPS and iter < max_iter:
+        prev_t = t.copy()
+        if multiclass:
+            t -= alpha*df_multiclass(x, y, t)
+        else:
+            t -= alpha*df(x, y, t).reshape(dim_row+1, dim_col)
+        if iter % 500 == 0:
+            print "Iter", iter
+            print "df = ", alpha*df(x, y, t)
+            print "t = ", t 
+            print "Gradient: ", df(x, y, t), "\n"
+        iter += 1
+    return t
+
+def linear_classifier(training_set, training_y, dim_row, dim_col, alpha=5E-7):
+    theta = np.random.rand(dim_row+1, dim_col)*(1E-9)
+    t = grad_descent(f, df, training_set.T,
+    training_y, theta, alpha, dim_row, dim_col, multiclass=0)
+    return t
+
+def part3():
+    TRAINING_SIZE = 100
+    VAL_SIZE = 10
+    TEST_SIZE = 10
+    TOTAL_SIZE = TRAINING_SIZE + VAL_SIZE + TEST_SIZE
+    
+    # get all images
+    actors = ["carell", "hader"]
+    x, y, filename_to_img = get_imgs("filtered_male/", actors, TOTAL_SIZE)
+    x /=255.
+    
+    training_set, training_y, validation_set, validation_y, test_set, test_y 
+    = get_sets(x, y, actors, filename_to_img, TRAINING_SIZE, VAL_SIZE, TEST_SIZE)
+    
+    # linear classifier y has one column
+    training_y = reshape(training_y.T[1], (1, TRAINING_SIZE*len(actors)))
+    validation_y = reshape(validation_y.T[1], (1, VAL_SIZE*len(actors)))
+    test_y = reshape(test_y.T[1], (1, TEST_SIZE*len(actors)))
+    
+    t = linear_classifier(training_set, training_y, 1024, 1)
+    
+    train_p = performance(training_set.T, training_y, t, TRAINING_SIZE*len(actors))
+    val_p = performance(validation_set.T, validation_y, t, VAL_SIZE*len(actors))
+    test_p = performance(test_set.T, test_y, t, TEST_SIZE*len(actors))
+
+    print("TRAIN PERFORMANCE: %f", train_p*100)
+    print("VALIDATION PERFORMANCE: %f", val_p*100)
+    print("TEST PERFORMANCE: %f", test_p*100)
+
+\end{lstlisting}
+\\
+\textbf{System Logistics:\\}
+First, the input images were normalized to values between 0 and 1. This helped to scale the affect of alpha within the gradient descent to a reasonable amount. \\
+I found that if alpha is too large, the performance of the classifier significantly decreases when convergence does occur. Otherwise, there would be no convergence and gradients would lean towards infinity. If the alpha was too small, the performance would also be negligable although the theta's would look more like faces. At times, when the algorithm wouldn't converge under 30000 iterations, I would adjust the EPS to a larger value or decrease max\_iterations. In these cases, the performances did turn out okay.\\
+\\
+\textit{This is implemented in the $part3()$ function in faces.py}.
+\\
+
+\end{homeworkProblem}
+\clearpage
+
+%----------------------------------------------------------------------------------------
+%	PART 4
+%----------------------------------------------------------------------------------------
+\begin{homeworkProblem}
+\begin{figure}[!ht]
+ \centering
+ \caption{Training size = 100}
+ \includegraphics[width=0.5\textwidth]{part3_theta_training100.jpg}
+\end{figure}
+\begin{figure}[!ht]
+ \centering
+ \caption{Training size = 2}
+\includegraphics[width=0.5\textwidth]{part3_theta_training2.jpg}
+\end{figure}
+\end{homeworkProblem}
+\clearpage
+
+\textit{This is implemented in the $part3()$ function in faces.py}.
+\\
+
+
+%----------------------------------------------------------------------------------------
+%	PART 5
+%----------------------------------------------------------------------------------------
+
+\begin{homeworkProblem}
+\textbf{Plotted Training Set Size vs Classifier Performance on Training, Validation and non-act Actor Sets\\}
+\\
+\begin{figure}[!ht]
+ \centering
+ \includegraphics[width=\textwidth]{part5_plot_notest.png}
+\end{figure}
+\textbf{Classifier Performance on actors not in act\\}
+\\
+\textit{This is implemented in the $part5()$ and $part5_plot()$ functions in faces.py}.
+\\
+\end{homeworkProblem}
+\clearpage
+
+%----------------------------------------------------------------------------------------
+%	PART 6
+%----------------------------------------------------------------------------------------
+
+\begin{homeworkProblem}
+
+%	PART A ----------------------------
+\subsection{Part A}
+\textbf{Compute  $\partial J$/$\partial \theta_{pq}$.}\\
+$J(\theta) = \sum_{i=1}^{m} (\theta^{(i)}_{0}x^{(i}_{0} + \theta^{(i)}_{1}x^{(i}_{1} + ...+ \theta^{(i)}_{q}x^{(i}_{q} +...+ \theta^{(i)}_{k}x^{(i}_{k} - y^{(i)}_{0} - y^{(i)}_{1} - ... - y^{(i)}_{q} ... - y^{(i)}_{k})^2 $\\
+$\partial J/\partial (\theta_{pq})$ = $\sum_{i=1}^{m} \partial/\parital{\theta_{pq}} (\theta^{(i)}_{0}x^{(i)}_{0} + \theta^{(i)}_{1}x^{(i)}_{1} + ...+ \theta^{(i)}_{q}x^{(i)}_{q} +...+ \theta^{(i)}_{k}x^{(i)}_{k} - y^{(i)}_{0} - y^{(i)}_{1} - ... - y^{(i)}_{q} ... - y^{(i)}_{k})^2 $\\
+\indent$= \partial/\parital{\theta_{pq}} (\theta^{(p)}_{0}x^{(p)}_{0} + \theta^{(p)}_{1}x^{(p)}_{1} + ...+ \theta^{(p)}_{q}x^{(p)}_{q} +...+ \theta^{(p)}_{k}x^{(p)}_{k} - y^{(p)}_{0} - y^{(p)}_{1} - ... - y^{(p)}_{q} ... - y^{(p)}_{k})^2 $\\
+\indent $= 2(\theta^{(p)}_{q}x^{(p)}_{q} - y^{(p)}_{q})x^{(p)}_{q} $\\
+\\
+\subsection{Part B}
+\\
+%	PART B ----------------------------
+k - # labels \\
+m - # training samples \\
+X Dimensions: (1+32*32, m) - 1 - row of 1s\\
+Y Dimensions: (k, m)\\
+$\theta$ Dimensions: (1+32*32, k) - 1 for $\theta_0$\\
+\\
+Given 2X($\theta^{T}$X-Y)$^T$.\\
+\\
+Then given the dimensions specified: \\
+$ (1025, m) \times (((k, 1025) \times (1025, m)) - (k, m))^T $\\
+= $(1025, m) \times (m, k)$\\
+= $(1025, k)$ - which is the dimension for $\theta$\\
+\\
+%	PART C ----------------------------
+\subsection{Part C}
+\\
+\textbf{Implemented Cost Function & Vectorized Gradient Function:\\}
+\begin{lstlisting}
+def f_multiclass(x, y, theta):
+    x = vstack( (ones((1, x.shape[1])), x))
+    return sum(np.square((y - dot(theta.T,x).T)))
+def df_multiclass(x, y, theta):
+    x = vstack( (ones((1, x.shape[1])), x))
+    return 2*dot(x, (dot(theta.T,x)-y.T).T)
+\end{lstlisting}
+
+%	PART D ----------------------------
+\subsection{Part D}
+\\
+\textbf{Demonstrate the vectorized gradient function works by computing several components of the gradient using finite differences.\\}
+\\
+\textbf{Code used to compute gradient components using finite differences:\\}
+\begin{lstlisting}
+def check_grad_multiclass(x, y, theta, coords):
+    for coord in coords:
+        h_r_c = 0.000001
+        h = np.zeros([1025, 6])
+        h[coord[0],coord[1]] = h_r_c
+        x = x.T.reshape(1024, 1)
+        y = y.reshape(1,6)
+        print "Validating gradient function at: ", coords
+        print "\t Finite Difference=", 
+            (f_multiclass(x, y, theta+h) - f_multiclass(x, y, theta-h))/(2*h_r_c)
+        print "\t df[{},{}]= {}".format(coord[0], coord[1],
+            df_multiclass(x, y, theta)[coord[0], coord[1]])
+\end{lstlisting}
+\\
+\\
+\textbf{Finite Differences Gradient vs. Implemented GD \\}
+\begin{lstlisting}
+>>> check_grad_multiclass(training_set[1], training_y[1], t, [(2,3), (100,5), (500,5)])
+Validating gradient function at:  [(2, 3), (100, 5), (500, 5)]
+	 Finite Difference= 0.162464167786
+	 df[2,3]= 0.162464167795
+Validating gradient function at:  [(2, 3), (100, 5), (500, 5)]
+	 Finite Difference= 0.0514390513517
+	 df[100,5]= 0.0514390513723
+Validating gradient function at:  [(2, 3), (100, 5), (500, 5)]
+	 Finite Difference= 0.0610303697302
+	 df[500,5]= 0.0610303697323
+\end{lstlisting}
+
+\end{homeworkProblem}
+\clearpage
+
+%----------------------------------------------------------------------------------------
+%	PART 7
+%----------------------------------------------------------------------------------------
+
+\begin{homeworkProblem}
+\textbf{Training Set Performance:} 88.5\\
+\textbf{Validation Set Performance:} 71.6\\
+\textbf{Alpha:} 1.5E-6\\
+\textbf{Indicate what parameters you chose for gradient descent and why they seem to make sense.}
+\\
+The alpha value increased compared to the alpha values of the previous cases. This could be explained by the addition of more grooves within the gradient surface. The larger alpha value may optimize the minimization of the cost function because it allows for a wider search over the surface for a minimum.\\
+\\
+\textit{This is implemented in the $part7()$ function in faces.py}.
+\end{homeworkProblem}
+\clearpage
+
+%----------------------------------------------------------------------------------------
+%	PART 8
+%----------------------------------------------------------------------------------------
+
+\begin{homeworkProblem}
+\textbf{Visualized $\theta$s obtained}
+\begin{figure}[!ht]
+ \caption{Fran Drescher}
+ \centering
+ \includegraphics[width=0.5\textwidth]{part7_theta_0.png}
+\end{figure}
+\begin{figure}[!ht]
+ \caption{America Ferrera}
+ \centering
+ \includegraphics[width=0.5\textwidth]{part7_theta_1.png}
+\end{figure}
+\begin{figure}[!ht]
+ \caption{Kristin Chenoweth}
+ \centering
+ \includegraphics[width=0.5\textwidth]{part7_theta_2.png}
+\end{figure}
+\begin{figure}[!ht]
+ \caption{Alec Baldwin}
+ \centering
+ \includegraphics[width=0.5\textwidth]{part7_theta_3.png}
+\end{figure}
+\begin{figure}[!ht]
+ \caption{Bill Hader}
+ \centering
+ \includegraphics[width=0.5\textwidth]{part7_theta_4.png}
+\end{figure}
+\begin{figure}[!ht]
+ \caption{Steve Carell}
+ \centering
+ \includegraphics[width=0.5\textwidth]{part7_theta_5.png}
+\end{figure}
+\end{homeworkProblem}
+\clearpage
+
+%----------------------------------------------------------------------------------------
+\end{document}
